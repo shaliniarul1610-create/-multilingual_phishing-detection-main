@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner | SecureMail AI</title>
+    {% include "detector/_head_styles.html" %}
+    <style>
+        .hero { padding: 50px 20px 30px; }
+        .hero h1 { font-size: 32px; margin-bottom: 8px; }
+        .hero p { font-size: 15px; }
+        .container { max-width: 780px; margin: 0 auto; padding: 0 20px; }
+        .card { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); margin-bottom: 20px; }
+        label { font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px; }
+        input[type="text"] { width: 100%; padding: 12px; font-size: 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; margin-bottom: 14px; font-family: 'Inter', sans-serif; }
+        input[type="text"]:focus, textarea:focus { outline: none; border-color: #2563eb; }
+        textarea { width: 100%; height: 160px; padding: 14px; font-size: 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; resize: vertical; font-family: 'Inter', sans-serif; }
+        button { margin-top: 14px; padding: 13px 28px; background: #2563eb; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; }
+        button:hover { background: #1d4ed8; }
+        .result-banner { margin-top: 22px; padding: 18px 20px; border-radius: 12px; font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .phishing { background: #fef2f2; color: #b91c1c; border: 1.5px solid #fecaca; }
+        .legitimate { background: #f0fdf4; color: #15803d; border: 1.5px solid #bbf7d0; }
+        .score-row { display: flex; gap: 16px; margin-top: 18px; }
+        .score-card { flex: 1; background: #f8fafc; border-radius: 12px; padding: 18px; text-align: center; border: 1px solid #e2e8f0; }
+        .score-card .label { font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .score-card .value { font-size: 30px; font-weight: 800; margin-top: 6px; }
+        .verdict-safe { color: #15803d; } .verdict-low { color: #ca8a04; }
+        .verdict-medium { color: #ea580c; } .verdict-high { color: #b91c1c; }
+        .panel { margin-top: 16px; padding: 18px 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .panel h3 { font-size: 13px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+        .panel ul { padding-left: 18px; font-size: 13.5px; color: #475569; line-height: 1.7; }
+        .matrix-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid #e5e7eb; font-size: 14px; color: #334155; gap: 12px; }
+        .matrix-row:last-child { border-bottom: none; }
+        .badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .badge-yes { background: #fee2e2; color: #b91c1c; }
+        .badge-no { background: #dcfce7; color: #15803d; }
+        .chip { display: inline-block; padding: 4px 10px; background: #e0e7ff; color: #3730a3; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        .explain-text { font-size: 14px; color: #334155; line-height: 1.7; }
+        .reasons-panel { border: 1.5px solid #fca5a5; background: #fef2f2; }
+        .reasons-panel h3 { color: #991b1b; }
+        .reasons-panel ul { list-style: none; padding-left: 0; }
+        .reasons-panel li { padding: 4px 0; color: #991b1b; font-weight: 600; }
+        .reco-panel { border: 1.5px solid #fca5a5; background: #fef2f2; }
+        .reco-panel h3 { color: #991b1b; }
+        .reco-panel ul { color: #7f1d1d; line-height: 1.9; font-size: 14px; }
+        .actions { margin-top: 18px; display: flex; gap: 12px; flex-wrap: wrap; }
+        .actions a { display: inline-block; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 9px 16px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; }
+    </style>
+</head>
+<body>
+    {% include "detector/_navbar.html" with active="scanner" %}
+
+    <div class="hero">
+        <h1>Multilingual Phishing Email Detector</h1>
+        <p>Tamil · Malayalam · Telugu · English — AI-powered threat analysis</p>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <form method="POST">
+                {% csrf_token %}
+                <label>From (sender email)</label>
+                <input type="text" name="sender_email" placeholder="e.g. notifications@company.com" value="{{ sender_input|default:'' }}">
+
+                <label>Subject</label>
+                <input type="text" name="subject" placeholder="Email subject line" value="{{ subject_input|default:'' }}">
+
+                <label>Body</label>
+                <textarea name="body" placeholder="Paste the email body content here...">{{ body_input|default:'' }}</textarea>
+                <br>
+                <button type="submit">🔍 Analyze Email</button>
+            </form>
+
+            {% if result %}
+                <div class="result-banner {% if result == 'Phishing' %}phishing{% else %}legitimate{% endif %}">
+                    {% if result == 'Phishing' %}🚨{% else %}✅{% endif %}
+                    Prediction: {{ result|upper }} — Risk: {{ confidence }}%
+                </div>
+
+                <div class="actions">
+                    <a href="{% url 'forensic_report' scan_id %}">🧾 View Full Report</a>
+                </div>
+
+                {% if reasons %}
+                <div class="panel reasons-panel">
+                    <h3>⚠️ Reasons</h3>
+                    <ul>{% for r in reasons %}<li>⚠ {{ r }}</li>{% endfor %}</ul>
+                </div>
+                {% endif %}
+
+                <div class="score-row">
+                    <div class="score-card">
+                        <div class="label">Threat Score</div>
+                        <div class="value">{{ threat_score }}<span style="font-size:16px;color:#94a3b8;">/100</span></div>
+                    </div>
+                    <div class="score-card">
+                        <div class="label">Verdict</div>
+                        <div class="value {% if verdict == 'Safe' %}verdict-safe{% elif verdict == 'Low Risk' %}verdict-low{% elif verdict == 'Medium Risk' %}verdict-medium{% else %}verdict-high{% endif %}">{{ verdict }}</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>🌐 Language Intelligence</h3>
+                    <span class="chip">{{ language }}</span>
+                </div>
+
+                <div class="panel">
+                    <h3>👤 Sender Risk Profile</h3>
+                    <p style="font-size:14px; margin-bottom:8px;">
+                        <strong>{{ sender_domain|default:"Not found" }}</strong>
+                        {% if trusted_flag %}<span class="badge badge-no">Trusted</span>{% else %}<span class="badge badge-yes">Untrusted</span>{% endif %}
+                    </p>
+                    <ul>{% for f in sender_flags %}<li>{{ f }}</li>{% endfor %}</ul>
+                </div>
+
+                <div class="panel">
+                    <h3>🔗 URL Threat Intelligence</h3>
+                    <ul>{% for f in url_flags %}<li>{{ f }}</li>{% endfor %}</ul>
+                </div>
+
+                <div class="panel">
+                    <h3>🔗 URL Analysis Pipeline</h3>
+                    {% for step in url_pipeline %}
+                        <div class="matrix-row">
+                            <span>{{ step.stage }}</span>
+                            <span class="badge {% if step.risk %}badge-yes{% else %}badge-no{% endif %}" style="font-size:11px;">{{ step.result }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="panel">
+                    <h3>📋 Threat Indicator Matrix</h3>
+                    {% for row in indicator_matrix %}
+                        <div class="matrix-row">
+                            <span>{{ row.check }}</span>
+                            <span class="badge {% if row.status %}badge-yes{% else %}badge-no{% endif %}">{% if row.status %}FLAGGED{% else %}CLEAR{% endif %}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="panel">
+                    <h3>🤖 AI Explanation</h3>
+                    <p class="explain-text">{{ ai_explanation }}</p>
+                </div>
+
+                <div class="panel reco-panel">
+                    <h3>{{ recommendation.title }}</h3>
+                    <p style="font-size:13px; font-weight:700; color:#991b1b; margin-bottom:6px;">Recommendation:</p>
+                    <ul>{% for point in recommendation.points %}<li>{{ point }}</li>{% endfor %}</ul>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

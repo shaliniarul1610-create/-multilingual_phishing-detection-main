@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threat Analytics | SecureMail AI</title>
+    {% include "detector/_head_styles.html" %}
+    <style>
+        .container { max-width: 950px; margin: 0 auto; padding: 0 20px; }
+
+        .dashboard-box { background: #0f172a; border-radius: 16px; box-shadow: 0 15px 30px rgba(0,0,0,0.3); overflow: hidden; margin-bottom: 20px; border: 1px solid #334155; }
+        .dashboard-header { background: #1e293b; padding: 14px 24px; color: #60a5fa; font-weight: 800; font-size: 14px; letter-spacing: 1px; text-align: center; border-bottom: 1px solid #334155; }
+        .dashboard-row { display: flex; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid #1e293b; font-family: 'Courier New', monospace; }
+        .dashboard-row:last-child { border-bottom: none; }
+        .dashboard-label { color: #94a3b8; font-size: 14px; }
+        .dashboard-value { color: #f1f5f9; font-weight: 700; font-size: 15px; }
+        .dashboard-value.danger { color: #f87171; }
+        .dashboard-value.safe { color: #4ade80; }
+        .dashboard-value.warn { color: #fbbf24; }
+
+        .stat-row { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 20px; }
+        .stat-card { flex: 1; min-width: 160px; background: white; border-radius: 16px; padding: 24px; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+        .stat-card .num { font-size: 34px; font-weight: 800; }
+        .stat-card .lbl { font-size: 12px; color: #64748b; font-weight: 600; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .total { color: #2563eb; } .phishing { color: #b91c1c; } .legit { color: #15803d; } .highrisk { color: #ea580c; }
+
+        .lang-section { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+        .lang-section h3 { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
+        .lang-grid { display: flex; gap: 16px; flex-wrap: wrap; }
+        .lang-card { flex: 1; min-width: 160px; background: linear-gradient(160deg, #f0fdf4, #ecfdf5); border: 1.5px solid #bbf7d0; border-radius: 14px; padding: 22px 18px; text-align: center; }
+        .lang-card .lang-name { font-size: 14px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+        .lang-card .lang-acc { font-size: 42px; font-weight: 800; color: #15803d; line-height: 1; }
+        .lang-card .lang-samples { font-size: 12px; color: #94a3b8; margin-top: 8px; font-weight: 500; }
+    </style>
+</head>
+<body>
+    {% include "detector/_navbar.html" with active="analytics" %}
+
+    <div class="hero">
+        <h1>📊 Threat Analytics</h1>
+        <p>Detection statistics — {{ scope }}</p>
+    </div>
+
+    <div class="container">
+        <div class="dashboard-box">
+            <div class="dashboard-header">🛡️ SECURITY DASHBOARD</div>
+            <div class="dashboard-row"><span class="dashboard-label">Total Scans</span><span class="dashboard-value">{{ total }}</span></div>
+            <div class="dashboard-row"><span class="dashboard-label">Threats Found</span><span class="dashboard-value danger">{{ phishing_detected }}</span></div>
+            <div class="dashboard-row"><span class="dashboard-label">Safe Messages</span><span class="dashboard-value safe">{{ legitimate_count }}</span></div>
+            <div class="dashboard-row"><span class="dashboard-label">Avg. Risk</span><span class="dashboard-value warn">{{ avg_risk }}%</span></div>
+        </div>
+
+        <div class="stat-row">
+            <div class="stat-card"><div class="num total">{{ total }}</div><div class="lbl">Total Scans</div></div>
+            <div class="stat-card"><div class="num phishing">{{ phishing_detected }}</div><div class="lbl">Phishing Detected</div></div>
+            <div class="stat-card"><div class="num legit">{{ legitimate_count }}</div><div class="lbl">Legitimate</div></div>
+            <div class="stat-card"><div class="num highrisk">{{ high_risk_count }}</div><div class="lbl">High Risk</div></div>
+        </div>
+
+        <div class="lang-section">
+            <h3>🌐 Per-Language Model Accuracy</h3>
+            <div class="lang-grid">
+                {% for lang in language_accuracy %}
+                    <div class="lang-card">
+                        <div class="lang-name">{{ lang.language }}</div>
+                        <div class="lang-acc">{{ lang.accuracy }}%</div>
+                        <div class="lang-samples">{{ lang.samples }} test samples</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan History | SecureMail AI</title>
+    {% include "detector/_head_styles.html" %}
+    <style>
+        .container { max-width: 950px; margin: 0 auto; padding: 0 20px; }
+        .card { background: white; border-radius: 16px; padding: 10px 24px 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); }
+        .filter { display: flex; align-items: center; gap: 10px; padding: 16px 0 6px; }
+        .filter label { font-size: 13px; font-weight: 600; color: #475569; }
+        .filter select { padding: 9px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 13.5px; font-family: 'Inter', sans-serif; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; padding: 14px 10px; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 13px 10px; font-size: 13.5px; color: #334155; border-bottom: 1px solid #eef2f6; }
+        tr:hover td { background: #f8fafc; }
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; display: inline-block; }
+        .b-safe { background: #dcfce7; color: #15803d; }
+        .b-high { background: #fee2e2; color: #b91c1c; }
+        .b-fp { background: #fef9c3; color: #a16207; margin-left: 6px; font-size: 11px; padding: 3px 8px; }
+        .empty { text-align: center; padding: 50px 20px; color: #94a3b8; font-size: 14px; }
+    </style>
+</head>
+<body>
+    {% include "detector/_navbar.html" with active="history" %}
+
+    <div class="hero">
+        {% if user.is_staff %}
+            <h1>📜 User Scans</h1>
+            <p>Latest scans from all users</p>
+        {% else %}
+            <h1>📜 Scan History</h1>
+            <p>Your last 50 scans</p>
+        {% endif %}
+    </div>
+
+    <div class="container">
+        <div class="card">
+            {% if user.is_staff %}
+            <form method="GET" action="{% url 'admin_history' %}" class="filter">
+                <label for="user">Filter by user</label>
+                <select name="user" id="user" onchange="this.form.submit()">
+                    <option value="">All users</option>
+                    <option value="__none__" {% if selected_user == '__none__' %}selected{% endif %}>Unassigned (old scans)</option>
+                    {% for u in users %}
+                        <option value="{{ u.username }}" {% if selected_user == u.username %}selected{% endif %}>{{ u.username }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+            {% endif %}
+
+            {% if scans %}
+            <table>
+                <tr>
+                    <th>Date</th>
+                    {% if user.is_staff %}<th>User</th>{% endif %}
+                    <th>Language</th><th>Result</th><th>Risk %</th><th></th>
+                </tr>
+                {% for s in scans %}
+                <tr>
+                    <td>{{ s.created_at|date:"d M, H:i" }}</td>
+                    {% if user.is_staff %}<td>{{ s.user.username|default:"—" }}</td>{% endif %}
+                    <td>{{ s.language }}</td>
+                    <td>
+                        <span class="badge {% if s.result == 'Phishing' %}b-high{% else %}b-safe{% endif %}">{{ s.result }}</span>
+                        {% if s.reported_false_positive %}<span class="badge b-fp">⚑ Reported</span>{% endif %}
+                    </td>
+                    <td style="font-weight:700;">{{ s.threat_score }}%</td>
+                    <td><a href="{% url 'forensic_report' s.id %}" style="color:#2563eb; font-weight:600; text-decoration:none; font-size:13px;">View Report →</a></td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+                <div class="empty">No scans found.</div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

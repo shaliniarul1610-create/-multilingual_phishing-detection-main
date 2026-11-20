@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | SecureMail AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); min-height: 100vh; display: flex; flex-direction: column; color: #1e293b; }
+        .topbar { background: rgba(15, 23, 42, 0.7); padding: 18px 40px; }
+        .brand { color: white; font-weight: 800; font-size: 18px; text-decoration: none; }
+        .wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 30px 20px; }
+        .card { background: white; border-radius: 16px; padding: 34px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border-top: 4px solid #2563eb; }
+        h1 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+        .sub { color: #64748b; font-size: 13.5px; margin-bottom: 22px; }
+        label { font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 12px; font-size: 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; margin-bottom: 14px; font-family: 'Inter', sans-serif; }
+        input:focus { outline: none; border-color: #2563eb; }
+        button { width: 100%; padding: 13px; background: #2563eb; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px; }
+        button:hover { background: #1d4ed8; }
+        .error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; }
+        .error ul { padding-left: 16px; }
+        .hint { font-size: 12px; color: #94a3b8; margin: -8px 0 14px; }
+        .alt { text-align: center; margin-top: 18px; font-size: 13.5px; color: #64748b; line-height: 1.9; }
+        .alt a { color: #2563eb; font-weight: 700; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="topbar"><a href="{% url 'home' %}" class="brand">🛡️ SecureMail AI</a></div>
+    <div class="wrap">
+        <div class="card">
+            <h1>Create user account</h1>
+            <p class="sub">Your scans and reports stay private to your account</p>
+
+            {% if form.errors %}
+                <div class="error">
+                    <ul>
+                        {% for field in form %}{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}{% endfor %}
+                        {% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <label>Username</label>
+                <input type="text" name="username" value="{{ form.username.value|default:'' }}" autofocus required>
+                <label>Password</label>
+                <input type="password" name="password1" required>
+                <p class="hint">Minimum 8 characters, not too common, not only numbers.</p>
+                <label>Confirm password</label>
+                <input type="password" name="password2" required>
+                <button type="submit">Sign Up</button>
+            </form>
+            <p class="alt">
+                Already have an account? <a href="{% url 'user_login' %}">User Login</a><br>
+                <a href="{% url 'home' %}" style="color:#94a3b8; font-weight:600;">← Back to home</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

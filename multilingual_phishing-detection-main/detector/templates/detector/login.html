@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if role == 'admin' %}Admin Login{% else %}User Login{% endif %} | SecureMail AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); min-height: 100vh; display: flex; flex-direction: column; color: #1e293b; }
+        .topbar { background: rgba(15, 23, 42, 0.7); padding: 18px 40px; }
+        .brand { color: white; font-weight: 800; font-size: 18px; text-decoration: none; }
+        .wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 30px 20px; }
+        .card { background: white; border-radius: 16px; padding: 34px; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border-top: 4px solid {% if role == 'admin' %}#f59e0b{% else %}#2563eb{% endif %}; }
+        h1 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+        .sub { color: #64748b; font-size: 13.5px; margin-bottom: 22px; }
+        label { font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 12px; font-size: 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; margin-bottom: 14px; font-family: 'Inter', sans-serif; }
+        input:focus { outline: none; border-color: #2563eb; }
+        button { width: 100%; padding: 13px; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px; background: {% if role == 'admin' %}#0f172a{% else %}#2563eb{% endif %}; }
+        button:hover { opacity: 0.92; }
+        .error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; }
+        .alt { text-align: center; margin-top: 18px; font-size: 13.5px; color: #64748b; line-height: 1.9; }
+        .alt a { color: #2563eb; font-weight: 700; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="topbar"><a href="{% url 'home' %}" class="brand">🛡️ SecureMail AI</a></div>
+    <div class="wrap">
+        <div class="card">
+            {% if role == 'admin' %}
+                <h1>⚙️ Admin Login</h1>
+                <p class="sub">Restricted area. Authorized admins only.</p>
+            {% else %}
+                <h1>👤 User Login</h1>
+                <p class="sub">Login to scan and track your emails</p>
+            {% endif %}
+
+            {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <label>Username</label>
+                <input type="text" name="username" value="{{ username|default:'' }}" autofocus required>
+                <label>Password</label>
+                <input type="password" name="password" required>
+                <button type="submit">{% if role == 'admin' %}Login as Admin{% else %}Login{% endif %}</button>
+            </form>
+
+            <p class="alt">
+                {% if role == 'admin' %}
+                    Not an admin? <a href="{% url 'user_login' %}">User Login</a>
+                {% else %}
+                    New here? <a href="{% url 'signup' %}">Create an account</a><br>
+                    Admin? <a href="{% url 'admin_login' %}">Admin Login</a>
+                {% endif %}
+                <br><a href="{% url 'home' %}" style="color:#94a3b8; font-weight:600;">← Back to home</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

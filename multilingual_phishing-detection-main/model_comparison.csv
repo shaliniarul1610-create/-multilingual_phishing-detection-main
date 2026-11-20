@@ -1,0 +1,5 @@
+,accuracy,precision,recall,f1,size_MB,infer_ms_per_sample
+LSTM,1.0,1.0,1.0,1.0,15.27,0.739
+BiLSTM,1.0,1.0,1.0,1.0,15.87,1.032
+mBERT,1.0,1.0,1.0,1.0,681.27,177.729
+XLM-R,1.0,1.0,1.0,1.0,1076.99,150.206

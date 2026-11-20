@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forensic Report | SecureMail AI</title>
+    {% include "detector/_head_styles.html" %}
+    <style>
+        .hero h1 { font-size: 26px; }
+        .container { max-width: 780px; margin: 0 auto; padding: 0 20px; }
+        .toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+        .back-link { color: #cbd5e1; text-decoration: none; font-size: 14px; }
+        .btn-pdf { background: #2563eb; color: white; padding: 8px 18px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; }
+        .card { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); margin-bottom: 20px; }
+        .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+        .meta-item { background: #f8fafc; border-radius: 10px; padding: 14px; border: 1px solid #e2e8f0; }
+        .meta-item .lbl { font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .meta-item .val { font-size: 15px; font-weight: 700; color: #1e293b; margin-top: 4px; }
+        .result-banner { padding: 16px 20px; border-radius: 12px; font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+        .phishing { background: #fef2f2; color: #b91c1c; border: 1.5px solid #fecaca; }
+        .legitimate { background: #f0fdf4; color: #15803d; border: 1.5px solid #bbf7d0; }
+        .panel { margin-top: 16px; padding: 18px 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .panel h3 { font-size: 13px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+        .matrix-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+        .matrix-row:last-child { border-bottom: none; }
+        .badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .badge-yes { background: #fee2e2; color: #b91c1c; }
+        .badge-no { background: #dcfce7; color: #15803d; }
+        .reasons-list { list-style: none; }
+        .reasons-list li { padding: 4px 0; color: #991b1b; font-weight: 600; }
+        .content-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 16px; font-size: 13.5px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+        .fp-box { margin-top: 16px; padding: 16px 20px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+        .fp-box p { font-size: 13.5px; color: #92400e; line-height: 1.5; max-width: 480px; }
+        .fp-btn { background: #f59e0b; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .fp-btn:hover { background: #d97706; }
+        .fp-done { color: #15803d; font-weight: 700; font-size: 13.5px; }
+        .fp-flag { color: #a16207; font-weight: 700; font-size: 13.5px; }
+    </style>
+</head>
+<body>
+    {% include "detector/_navbar.html" with active="history" %}
+
+    <div class="hero">
+        <h1>🧾 Forensic Report</h1>
+        <p>Detailed analysis of a single scanned email</p>
+    </div>
+
+    <div class="container">
+        <div class="toolbar">
+            {% if user.is_staff %}
+                <a href="{% url 'admin_history' %}" class="back-link">← Back to User Scans</a>
+            {% else %}
+                <a href="{% url 'scan_history' %}" class="back-link">← Back to History</a>
+            {% endif %}
+            <a href="{% url 'forensic_report_pdf' scan.id %}" class="btn-pdf">⬇ Download PDF Report</a>
+        </div>
+
+        <div class="card">
+            <div class="result-banner {% if scan.result == 'Phishing' %}phishing{% else %}legitimate{% endif %}">
+                {% if scan.result == 'Phishing' %}🚨{% else %}✅{% endif %}
+                Message Classification: {{ scan.result|upper }}
+            </div>
+
+            <div class="meta-grid">
+                <div class="meta-item"><div class="lbl">Scan ID</div><div class="val">#{{ scan.id }}</div></div>
+                <div class="meta-item"><div class="lbl">Date &amp; Time</div><div class="val">{{ scan.created_at|date:"d M Y, H:i" }}</div></div>
+                <div class="meta-item"><div class="lbl">Scanned By</div><div class="val">{{ scan.user.username|default:"Unknown" }}</div></div>
+                <div class="meta-item"><div class="lbl">Detected Language</div><div class="val">{{ scan.language }}</div></div>
+                <div class="meta-item" style="grid-column: span 2;"><div class="lbl">Risk Score</div><div class="val">{{ scan.threat_score }}/100 ({{ scan.verdict }})</div></div>
+            </div>
+
+            {% if reasons %}
+            <div class="panel" style="border-color:#fca5a5; background:#fef2f2;">
+                <h3 style="color:#991b1b;">⚠️ Threat Indicators</h3>
+                <ul class="reasons-list">{% for r in reasons %}<li>⚠ {{ r }}</li>{% endfor %}</ul>
+            </div>
+            {% endif %}
+
+            <div class="panel">
+                <h3>📋 Detailed Indicators</h3>
+                {% for i in threat_indicators %}
+                    <div class="matrix-row">
+                        <span>{{ i.check }}</span>
+                        <span class="badge {% if i.status %}badge-yes{% else %}badge-no{% endif %}">{% if i.status %}FLAGGED{% else %}CLEAR{% endif %}</span>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="panel">
+                <h3>🔍 Highlighted Suspicious Content</h3>
+                <div class="content-box">{{ highlighted }}</div>
+            </div>
+
+            <div class="panel">
+                <h3>🤖 AI Explanation</h3>
+                <p style="font-size:14px; color:#334155; line-height:1.7;">{{ ai_explanation }}</p>
+            </div>
+
+            <div class="panel" style="border-color:#fca5a5; background:#fef2f2;">
+                <h3 style="color:#991b1b;">{{ recommendation.title }}</h3>
+                <p style="font-size:13px; font-weight:700; color:#991b1b; margin-bottom:8px;">Recommendation:</p>
+                <ul style="padding-left:18px; font-size:14px; color:#7f1d1d; line-height:1.9;">
+                    {% for point in recommendation.points %}<li>{{ point }}</li>{% endfor %}
+                </ul>
+            </div>
+
+            <div class="fp-box">
+                {% if user.is_staff %}
+                    {% if scan.reported_false_positive %}
+                        <span class="fp-flag">⚑ The user reported this result as a possible false positive. Please review.</span>
+                    {% else %}
+                        <span style="color:#64748b; font-size:13.5px;">No false positive report for this scan.</span>
+                    {% endif %}
+                {% elif scan.reported_false_positive %}
+                    <span class="fp-done">✓ You reported this result as a possible false positive. The admin will review it.</span>
+                {% else %}
+                    <p>Think this result is wrong? Report it as a false positive so the admin can review it.</p>
+                    <form method="POST" action="{% url 'report_false_positive' scan.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="fp-btn">⚑ Report False Positive</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

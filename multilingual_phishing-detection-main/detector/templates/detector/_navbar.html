@@ -1,0 +1,17 @@
+<div class="topbar">
+    <div class="brand">🛡️ SecureMail AI{% if user.is_staff %}<span class="role-tag">ADMIN</span>{% endif %}</div>
+    <div class="navlinks">
+        {% if user.is_staff %}
+            <a href="{% url 'admin_dashboard' %}"{% if active == 'dashboard' %} class="active"{% endif %}>Dashboard</a>
+            <a href="{% url 'admin_history' %}"{% if active == 'history' %} class="active"{% endif %}>User Scans</a>
+            <a href="{% url 'admin_analytics' %}"{% if active == 'analytics' %} class="active"{% endif %}>Analytics</a>
+            <a href="/admin/">Django Admin</a>
+        {% else %}
+            <a href="{% url 'predict_email' %}"{% if active == 'scanner' %} class="active"{% endif %}>Scanner</a>
+            <a href="{% url 'scan_history' %}"{% if active == 'history' %} class="active"{% endif %}>History</a>
+            <a href="{% url 'threat_analytics' %}"{% if active == 'analytics' %} class="active"{% endif %}>Analytics</a>
+        {% endif %}
+        <span class="nav-user">👤 {{ user.username }}</span>
+        <a href="{% url 'logout' %}" class="logout">Logout</a>
+    </div>
+</div>
